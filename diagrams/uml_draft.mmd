@@ -1,0 +1,55 @@
+classDiagram
+    class User {
+        +int id
+        +str name
+        +str email
+        +list availabilityWindows
+        +list priorities
+        +addPet(pet: Pet) void
+        +addTask(task: Task) void
+        +getSchedule() list
+    }
+
+    class Pet {
+        +int id
+        +str name
+        +str species
+        +str breed
+        +int age
+        +int ownerId
+        +list tasks
+        +getTasks() list
+        +addTask(task: Task) void
+    }
+
+    class Task {
+        +int id
+        +str name
+        +str description
+        +int petId
+        +str priority
+        +str dueDate
+        +int duration
+        +str status
+        +edit(fields: dict) void
+        +delete() void
+        +markComplete() void
+    }
+
+    class Planner {
+        +list users
+        +list pets
+        +list tasks
+        +list schedule
+        +addUser(user: User) void
+        +addPet(pet: Pet) void
+        +addTask(task: Task) void
+        +createSchedule() list
+    }
+
+    User "1" --> "0..*" Pet : owns
+    User "1" --> "1" Planner : uses
+    Pet "1" --> "0..*" Task : has
+    Planner "1" --> "0..*" User : manages
+    Planner "1" --> "0..*" Pet : tracks
+    Planner "1" --> "0..*" Task : schedules
