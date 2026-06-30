@@ -2,15 +2,21 @@
 
 ## 1. System Design
 
+A user should be able to add their pets into the system, add tasks into the Scheduler, and describe their availability and priorities.
+
 **a. Initial design**
 
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
 
+ Given the core functionality, the main objects needed for the system are: User, Pet, Task, and Scheduler. The User class needs to store information about pets and time restrictions/preferences they may have and add pets + tasks into the Scheduler. The Pet class will be linked to an owner, tasks associated with it, and necessary attributes of the pet. The Task class will store information about each task and support adding, editing, and deleting functionality. Finally, the scheduler holds information about tasks, pets, and users and can create a schedule for the user. 
+
 **b. Design changes**
 
 - Did your design change during implementation?
 - If yes, describe at least one change and why you made it.
+
+After asking the AI (Claude Code) for a design review, I changed some of the attributes of the system. In my first iteration, I had three classes (users, pets, and planner) able to add tasks. I thought this was disorganized, so I followed the AI's suggestion of only having pet own the add and remove task functionality. Additionally, I followed its recoommendation to add dataclasses for availability windows and scheduled entries, which I agree with in order to make the implementation easier. 
 
 ---
 
