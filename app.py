@@ -149,20 +149,24 @@ else:
             task_submitted = st.form_submit_button("Add Task")
 
         if task_submitted:
+            # st.selectbox can hand back a stale cached copy of the Pet rather than the
+            # live object in st.session_state.pets, so look the pet up by id to mutate
+            # the one everything else (planner, user) actually references.
+            live_pet = next(pet for pet in st.session_state.pets if pet.id == task_pet.id)
             new_task = Task(
                 id=st.session_state.next_task_id,
                 name=task_title,
                 description=task_desc,
-                pet_id=task_pet.id,
+                pet_id=live_pet.id,
                 priority=Priority[task_priority.upper()],
                 due_date=task_due_date.isoformat(),
                 duration=task_duration,
                 recurrence=Recurrence[task_recurrence.upper()],
             )
-            task_pet.add_task(new_task)
+            live_pet.add_task(new_task)
             st.session_state.tasks.append(new_task)
             st.session_state.next_task_id += 1
-            st.success(f"Added task '{task_title}' for {task_pet.name}!")
+            st.success(f"Added task '{task_title}' for {live_pet.name}!")
     # Display Current Tasks
     if st.session_state.tasks:
         st.write("Current tasks:")
@@ -236,16 +240,45 @@ else:
     else:
         st.info("No availability added yet. Add a window above.")
 
-    # TODO: Add schedule generating capabilities
     st.subheader("Build Schedule")
-    st.caption("This button should call your scheduling logic once you implement it.")
+    st.caption("Generate a schedule based on your availability, priority, and due date of the pet tasks.")
 
     if st.button("Generate schedule"):
-        st.warning(
-            "Not implemented yet. Next step: create your scheduling logic (classes/functions) and call it here."
-        )
-        st.markdown(
-            """
+        st.session_state.planner.create_schedule()
 
-"""
-        )
+    planner = st.session_state.planner
+    if planner.schedule or planner.unscheduled:
+        user_entries = [entry for entry in planner.schedule if entry.user.id == st.session_state.user.id]
+
+        st.markdown("#### Your Weekly Schedule")
+        if user_entries:
+            user_entries.sort(key=lambda e: (DAY_ORDER.index(e.day), e.start_time))
+            schedule_rows = [
+                {
+                    "Day": entry.day,
+                    "Start": entry.start_time.strftime("%H:%M"),
+                    "End": entry.end_time.strftime("%H:%M"),
+                    "Pet": planner.get_pet(entry.task.pet_id).name,
+                    "Task": entry.task.name,
+                    "Priority": entry.task.priority.name.title(),
+                }
+                for entry in user_entries
+            ]
+            st.table(schedule_rows)
+        else:
+            st.info("No tasks could be scheduled this week.")
+
+        user_unscheduled = [task for task in planner.unscheduled if task.pet_id in {pet.id for pet in st.session_state.pets}]
+        if user_unscheduled:
+            st.markdown("#### Could Not Be Scheduled")
+            st.caption("These tasks didn't fit in your available windows this week.")
+            unscheduled_rows = [
+                {
+                    "Pet": planner.get_pet(task.pet_id).name,
+                    "Task": task.name,
+                    "Priority": task.priority.name.title(),
+                    "Due Date": task.due_date,
+                }
+                for task in user_unscheduled
+            ]
+            st.table(unscheduled_rows)
