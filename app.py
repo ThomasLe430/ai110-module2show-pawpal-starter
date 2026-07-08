@@ -171,6 +171,18 @@ else:
     if st.session_state.tasks:
         st.write("Current tasks:")
         pet_names_by_id = {pet.id: pet.name for pet in st.session_state.pets}
+
+        pet_filter_options = ["All Pets"] + st.session_state.pets
+        pet_filter_choice = st.selectbox(
+            "Filter by pet:",
+            pet_filter_options,
+            format_func=lambda opt: opt if isinstance(opt, str) else opt.name,
+        )
+        if pet_filter_choice == "All Pets":
+            display_tasks = st.session_state.tasks
+        else:
+            display_tasks = st.session_state.planner.filter_by_pet(pet_filter_choice.id)
+
         task_rows = [
             {
                 "Pet": pet_names_by_id.get(task.pet_id, "Unknown"),
@@ -182,11 +194,11 @@ else:
                 "Duration (min)": task.duration,
                 "Status": task.status.title(),
             }
-            for task in st.session_state.tasks
+            for task in display_tasks
         ]
         st.table(task_rows)
 
-        pending_tasks = [task for task in st.session_state.tasks if task.status == "pending"]
+        pending_tasks = [task for task in display_tasks if task.status == "pending"]
         if pending_tasks:
             def _task_label(task):
                 pet_name = pet_names_by_id.get(task.pet_id, "Unknown")
@@ -268,11 +280,16 @@ else:
 
     planner = st.session_state.planner
     if planner.schedule or planner.unscheduled:
-        user_entries = [entry for entry in planner.schedule if entry.user.id == st.session_state.user.id]
+        sort_choice = st.radio("Sort schedule by:", ["Day & Time", "Due Date"], horizontal=True)
+
+        if sort_choice == "Due Date":
+            user_entries = [entry for entry in planner.sort_by_time() if entry.user.id == st.session_state.user.id]
+        else:
+            user_entries = [entry for entry in planner.schedule if entry.user.id == st.session_state.user.id]
+            user_entries.sort(key=lambda e: (DAY_ORDER.index(e.day), e.start_time))
 
         st.markdown("#### Your Weekly Schedule")
         if user_entries:
-            user_entries.sort(key=lambda e: (DAY_ORDER.index(e.day), e.start_time))
             schedule_rows = [
                 {
                     "Day": entry.day,
