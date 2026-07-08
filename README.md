@@ -95,19 +95,17 @@ Sample test output:
 
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Task sorting | sort_by_time | sort by due date |
+| Filtering | filter_by_pet | filter by different pets |
+| Recurring tasks | mark_complete & _next_occurence | occurence automatically set to next one |
 
 ## 📸 Demo Walkthrough
 
 Describe your app in numbered steps so a reader can follow along without watching a video:
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+1. Register User (Name and Email)
+2. Add pets (name, breed, age, etc.)
+3. Add tasks for the pets (duration, due date, priority)
+4. Add user avaiability (day of week, start time, end time)
+5. Click generate schedule to see weekly list of tasks
 
-**Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->

@@ -1,0 +1,95 @@
+classDiagram
+    class Priority {
+        <<enumeration>>
+        LOW
+        MEDIUM
+        HIGH
+    }
+
+    class Recurrence {
+        <<enumeration>>
+        ONE_TIME
+        DAILY
+        WEEKLY
+        MONTHLY
+    }
+
+    class Task {
+        +int id
+        +str name
+        +str description
+        +int pet_id
+        +Priority priority
+        +str due_date
+        +int duration
+        +str status
+        +Recurrence recurrence
+        +mark_complete() void
+    }
+
+    class Pet {
+        +int id
+        +str name
+        +str species
+        +str breed
+        +int age
+        +int owner_id
+        +int numTasks
+        +list~Task~ tasks
+        +get_tasks() list
+        +add_task(task: Task) void
+        +delete_task(task: Task) void
+    }
+
+    class AvailabilityWindow {
+        +str day
+        +time start_time
+        +time end_time
+        +int duration
+    }
+
+    class User {
+        +int id
+        +str name
+        +str email
+        +list~AvailabiltyWindow~ availability_windows
+        +list~Pet~ pets
+        +add_pet(pet: Pet) void
+        +add_availability(availability: AvailabiltyWindow) void
+    }
+
+    class ScheduledTask {
+        +str day
+        +Task task
+        +User user
+        +time start_time
+        +time end_time
+        +int duration
+    }
+
+    class Planner {
+        +list~User~ users
+        +list~Pet~ pets
+        +list~ScheduledTask~ schedule
+        +list~Task~ unscheduled
+        +add_user(user: User) void
+        +add_pet(pet: Pet) void
+        +create_schedule(today: date) list
+        +sort_by_time() list
+        +print_schedule() void
+        +get_user(id: int) User
+        +get_pet(id: int) Pet
+        +filter_by_pet(pet_id: int) list
+        +get_task(id: int) Task
+    }
+
+    User "1" --> "0..*" Pet : owns
+    User "1" --> "0..*" AvailabiltyWindow : has
+    Pet "1" --> "0..*" Task : has
+    Task ..> Priority : uses
+    Task ..> Recurrence : uses
+    Planner "1" --> "0..*" User : manages
+    Planner "1" --> "0..*" Pet : tracks
+    Planner "1" --> "0..*" ScheduledTask : schedules
+    ScheduledTask "1" --> "1" Task : wraps
+    ScheduledTask "1" --> "1" User : assigned to

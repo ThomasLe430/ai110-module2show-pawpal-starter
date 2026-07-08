@@ -1,5 +1,5 @@
 import streamlit as st
-from pawpal_system import Priority, Recurrence, Task, Pet, AvailabiltyWindow, User, ScheduledTask, Planner, DAY_ORDER
+from pawpal_system import Priority, Recurrence, Task, Pet, AvailabilityWindow, User, ScheduledTask, Planner, DAY_ORDER
 from datetime import time, date, datetime
 
 DEFAULT_USER_ID = 1
@@ -222,7 +222,7 @@ else:
 
     st.divider()
 
-    st.subheader("Add Availabilty")
+    st.subheader("Add Availability")
     st.caption(
         "Add the times you're free each week to take care of your pet(s). "
         "Windows repeat every week on the chosen day."
@@ -244,7 +244,7 @@ else:
             duration_minutes = int(
                 (datetime.combine(today, avail_end) - datetime.combine(today, avail_start)).total_seconds() // 60
             )
-            new_window = AvailabiltyWindow(
+            new_window = AvailabilityWindow(
                 day=avail_day,
                 start_time=avail_start,
                 end_time=avail_end,

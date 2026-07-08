@@ -83,7 +83,7 @@ class Pet:
         self.numTasks = len(self.tasks)
 
 @dataclass
-class AvailabiltyWindow:
+class AvailabilityWindow:
     day: str # day of the week
     start_time: time
     end_time: time
@@ -101,7 +101,7 @@ class User:
         """Register a pet under this user."""
         self.pets.append(pet)
 
-    def add_availability(self, availability: AvailabiltyWindow):
+    def add_availability(self, availability: AvailabilityWindow):
         """Add an availability window for this user."""
         self.availability_windows.append(availability)
     
@@ -130,7 +130,7 @@ def _week_bounds(today: date) -> tuple:
     return monday, monday + timedelta(days=6)
 
 
-def _window_date(window: AvailabiltyWindow, week_start: date) -> date:
+def _window_date(window: AvailabilityWindow, week_start: date) -> date:
     """The calendar date this availability window falls on, this week."""
     return week_start + timedelta(days=DAY_INDEX[window.day])
 

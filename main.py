@@ -1,4 +1,4 @@
-from pawpal_system import Priority, Recurrence, Task, Pet, AvailabiltyWindow, User, ScheduledTask, Planner
+from pawpal_system import Priority, Recurrence, Task, Pet, AvailabilityWindow, User, ScheduledTask, Planner
 from datetime import time
 
 OWNER_ID = 1234
@@ -33,15 +33,15 @@ task4 = Task(id=TASK_ID_4, name="Walk dog", description="Walk dog around park", 
 myDog.add_task(task4)
 
 # Create availability windows and add pet
-mondAvailability = [AvailabiltyWindow("Mon", time(8, 0, 0), time(9,0, 0), 60),
-                    AvailabiltyWindow("Mon", time(12, 0, 0), time(13,0, 0), 60), 
-                    AvailabiltyWindow("Mon", time(17, 0, 0), time(17,30, 0), 30)]
-tuesAvailability = [AvailabiltyWindow("Tue", time(14, 0, 0), time(16,0, 0), 120)]
-wedAvailability = [AvailabiltyWindow("Wed", time(12, 0, 0), time(3,0, 0), 180)]
-thurAvailability = [AvailabiltyWindow("Thu", time(12, 0, 0), time(13,0, 0), 60)]
-friAvailability = [AvailabiltyWindow("Fri", time(12, 0, 0), time(13,0, 0), 60)]
-satAvailability = [AvailabiltyWindow("Sat", time(12, 0, 0), time(13,0, 0), 60)]
-sunAvailability = [AvailabiltyWindow("Sun", time(12, 0, 0), time(16,0, 0), 240)]
+mondAvailability = [AvailabilityWindow("Mon", time(8, 0, 0), time(9,0, 0), 60),
+                    AvailabilityWindow("Mon", time(12, 0, 0), time(13,0, 0), 60), 
+                    AvailabilityWindow("Mon", time(17, 0, 0), time(17,30, 0), 30)]
+tuesAvailability = [AvailabilityWindow("Tue", time(14, 0, 0), time(16,0, 0), 120)]
+wedAvailability = [AvailabilityWindow("Wed", time(12, 0, 0), time(3,0, 0), 180)]
+thurAvailability = [AvailabilityWindow("Thu", time(12, 0, 0), time(13,0, 0), 60)]
+friAvailability = [AvailabilityWindow("Fri", time(12, 0, 0), time(13,0, 0), 60)]
+satAvailability = [AvailabilityWindow("Sat", time(12, 0, 0), time(13,0, 0), 60)]
+sunAvailability = [AvailabilityWindow("Sun", time(12, 0, 0), time(16,0, 0), 240)]
 
 ownerAvailability =  mondAvailability + tuesAvailability + wedAvailability + thurAvailability + friAvailability + satAvailability + sunAvailability
 newOwner = User(OWNER_ID, OWNER_NAME, "thole@g.hmc.edu", ownerAvailability)
