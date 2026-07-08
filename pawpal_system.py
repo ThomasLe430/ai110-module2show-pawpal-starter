@@ -1,3 +1,4 @@
+import calendar
 from dataclasses import dataclass, field
 from enum import Enum
 from datetime import time, date, datetime, timedelta
@@ -14,6 +15,21 @@ class Recurrence(Enum):
     WEEKLY = 3
     MONTHLY = 4
 
+
+def _next_occurrence(base: date, recurrence: "Recurrence") -> date:
+    """The date of the next occurrence after `base` for a recurring cadence."""
+    if recurrence == Recurrence.DAILY:
+        return base + timedelta(days=1)
+    if recurrence == Recurrence.WEEKLY:
+        return base + timedelta(weeks=1)
+    if recurrence == Recurrence.MONTHLY:
+        month = base.month % 12 + 1
+        year = base.year + (base.month // 12)
+        day = min(base.day, calendar.monthrange(year, month)[1])
+        return date(year, month, day)
+    raise ValueError("ONE_TIME tasks have no next occurrence")
+
+
 @dataclass
 class Task:
     id: int
@@ -26,18 +42,19 @@ class Task:
     status: str = "pending"
     recurrence: Recurrence = Recurrence.ONE_TIME
 
-    def edit(self, fields: dict) -> None:
-        """Update one or more fields on this task."""
-        pass
-
     def mark_complete(self) -> None:
         """One-time tasks close for good; recurring tasks reset to pending
-        for their next occurrence instead of staying complete."""
+        with their due date advanced to the next occurrence (e.g. a daily
+        task due today rolls over to tomorrow)."""
         if self.recurrence == Recurrence.ONE_TIME:
             self.status = "complete"
         else:
+            try:
+                base = date.fromisoformat(self.due_date)
+            except ValueError:
+                base = date.today()
+            self.due_date = _next_occurrence(base, self.recurrence).isoformat()
             self.status = "pending"
-            self.due_date = "TBD"  # placeholder until recurrence-based date math is added
 
 
 @dataclass
@@ -98,6 +115,7 @@ class ScheduledTask:
     duration: int 
 
 DAY_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+DAY_INDEX = {day: i for i, day in enumerate(DAY_ORDER)}
 
 FREQUENCY_RANK = {
     Recurrence.MONTHLY: 0,
@@ -114,7 +132,7 @@ def _week_bounds(today: date) -> tuple:
 
 def _window_date(window: AvailabiltyWindow, week_start: date) -> date:
     """The calendar date this availability window falls on, this week."""
-    return week_start + timedelta(days=DAY_ORDER.index(window.day))
+    return week_start + timedelta(days=DAY_INDEX[window.day])
 
 
 def _advance_time(t: time, minutes: int) -> time:
@@ -156,14 +174,18 @@ class Planner:
         self.pets: list = []        # list[Pet]
         self.schedule: list = []    # generated schedule entries
         self.unscheduled: list = [] # tasks that didn't fit anywhere this week
+        self._users_by_id: dict = {}
+        self._pets_by_id: dict = {}
 
     def add_user(self, user: User) -> None:
         """Register a user with the planner."""
         self.users.append(user)
+        self._users_by_id[user.id] = user
 
     def add_pet(self, pet: Pet) -> None:
         """Track a pet in the planner."""
         self.pets.append(pet)
+        self._pets_by_id[pet.id] = pet
 
     def create_schedule(self, today: Optional[date] = None) -> list:
         """Generate this week's schedule for all users.
@@ -204,7 +226,7 @@ class Planner:
 
             windows = sorted(
                 user.availability_windows,
-                key=lambda w: (DAY_ORDER.index(w.day), w.start_time),
+                key=lambda w: (DAY_INDEX[w.day], w.start_time),
             )
             windows_state = {
                 id(w): {"remaining": w.duration, "cursor": w.start_time}
@@ -236,6 +258,20 @@ class Planner:
         else:
             self.unscheduled.append(task)
 
+    def sort_by_time(self) -> list:
+        """Return the current schedule's entries sorted by their task's due date.
+
+        Recurring tasks awaiting their next due date (due_date == "TBD")
+        sort last since they have no concrete date to compare.
+        """
+        def due_date_key(entry: ScheduledTask) -> date:
+            try:
+                return date.fromisoformat(entry.task.due_date)
+            except ValueError:
+                return date.max
+
+        return sorted(self.schedule, key=due_date_key)
+
     def print_schedule(self) -> None:
         """Print the most recently generated schedule, grouped by user and
         by day, plus a list of anything that didn't fit this week."""
@@ -250,7 +286,7 @@ class Planner:
             entries = by_user.get(user.id)
             if not entries:
                 continue
-            entries.sort(key=lambda e: (DAY_ORDER.index(e.day), e.start_time))
+            entries.sort(key=lambda e: (DAY_INDEX[e.day], e.start_time))
 
             print(f"=== {user.name}'s Weekly Schedule ===")
             current_day = None
@@ -270,17 +306,16 @@ class Planner:
 
     def get_user(self, id: int) -> Optional[User]:
         """Look up a user by id."""
-        for user in self.users:
-            if user.id == id:
-                return user
-        return None
+        return self._users_by_id.get(id)
 
     def get_pet(self, id: int) -> Optional[Pet]:
         """Look up a pet by id."""
-        for pet in self.pets:
-            if pet.id == id:
-                return pet
-        return None
+        return self._pets_by_id.get(id)
+
+    def filter_by_pet(self, pet_id: int) -> list:
+        """Return all tasks belonging to the given pet, or [] if the pet is unknown."""
+        pet = self.get_pet(pet_id)
+        return pet.tasks if pet is not None else []
 
     def get_task(self, id: int) -> Optional[Task]:
         """Look up a task by id across all tracked pets."""

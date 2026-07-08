@@ -185,6 +185,26 @@ else:
             for task in st.session_state.tasks
         ]
         st.table(task_rows)
+
+        pending_tasks = [task for task in st.session_state.tasks if task.status == "pending"]
+        if pending_tasks:
+            def _task_label(task):
+                pet_name = pet_names_by_id.get(task.pet_id, "Unknown")
+                return f"{task.name} ({pet_name}) - due {task.due_date}"
+
+            complete_task = st.selectbox(
+                "Mark a task complete:", pending_tasks, format_func=_task_label
+            )
+            if st.button("Mark Complete"):
+                complete_task.mark_complete()
+                if complete_task.recurrence.name == "ONE_TIME":
+                    st.success(f"Marked '{complete_task.name}' complete!")
+                else:
+                    st.success(
+                        f"Marked '{complete_task.name}' complete! "
+                        f"Next occurrence due {complete_task.due_date}."
+                    )
+                st.rerun()
     else:
         st.info("No tasks yet. Add one above.")
 
